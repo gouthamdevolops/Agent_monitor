@@ -1,4 +1,4 @@
-import type { Recording } from '@/components/project-details/project-details-data';
+import { getProjectDetails, type Recording } from '@/components/project-details/project-details-data';
 
 type RecordingStatus = Recording['status'];
 
@@ -42,5 +42,25 @@ export function getProjectRecordings(projectId: string): RecordingListItem[] {
 }
 
 export function getRecordingById(projectId: string, recordingId: string): RecordingListItem | undefined {
-  return getProjectRecordings(projectId).find((recording) => recording.id === recordingId);
+  const archiveRecording = getProjectRecordings(projectId).find((recording) => recording.id === recordingId);
+
+  if (archiveRecording) {
+    return archiveRecording;
+  }
+
+  const recentRecording = getProjectDetails(projectId)?.recentRecordings.find((recording) => recording.id === recordingId);
+
+  if (!recentRecording) {
+    return undefined;
+  }
+
+  const [recordingDate, startTime = 'Recorded session'] = recentRecording.date.split(', ');
+
+  return {
+    id: recentRecording.id,
+    recordingDate,
+    startTime,
+    duration: recentRecording.duration,
+    status: recentRecording.status,
+  };
 }
